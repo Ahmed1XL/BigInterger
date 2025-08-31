@@ -8,99 +8,124 @@ class BigInt
     string number;   // Stores the number as a string
     bool isNegative; // True if number is negative
 
-public:
-    bool getIsNegative() const { return isNegative; }
-    const std::string &getDigits() const { return number; }
 
+    
     // Remove unnecessary leading zeros from the number string
 
-    void removeLeadingZeros() {
-        if (number.empty()) {
+    void removeLeadingZeros()
+    {
+        if (number.empty())
+        {
             number = "0";
             isNegative = false;
             return;
         }
         
         size_t firstNonZero = number.find_first_not_of('0');
-        
-        if (firstNonZero == string::npos) {
+
+        if (firstNonZero == string::npos)
+        {
             
             number = "0";
             isNegative = false;
-        } else {
+        }
+        else
+        {
             
             number = number.substr(firstNonZero);
         }
         
-        if (number == "0") {
+        if (number == "0")
+        {
             isNegative = false;
         }
-       }
-
+    }
+    
     // Compare absolute values of two BigInts (ignore signs)
     // Returns: 1 if |this| > |other|, 0 if equal, -1 if |this| < |other|
-    int compareMagnitude(const BigInt& other) const {
+    int compareMagnitude(const BigInt &other) const
+    {
         string thisNum = number;
         string otherNum = other.number;
         
-        if (thisNum.length() > otherNum.length()) {
+        if (thisNum.length() > otherNum.length())
+        {
             return 1;
-        } else if (thisNum.length() < otherNum.length()) {
+        }
+        else if (thisNum.length() < otherNum.length())
+        {
             return -1;
         }
         
-        for (size_t i = 0; i < thisNum.length(); i++) {
-            if (thisNum[i] > otherNum[i]) {
+        for (size_t i = 0; i < thisNum.length(); i++)
+        {
+            if (thisNum[i] > otherNum[i])
+            {
                 return 1;
-            } else if (thisNum[i] < otherNum[i]) {
+            }
+            else if (thisNum[i] < otherNum[i])
+            {
                 return -1;
             }
         }
-public:
+    }
+    
+    public:
     // Default constructor - initialize to zero
-
-    BigInt() {
+    
+    BigInt()
+    {
         number = "0";
         isNegative = false;
     }
-
+    
     // Constructor from 64-bit integer
-    BigInt(int64_t value) {
-        if (value == 0) {
+    BigInt(int64_t value)
+    {
+        if (value == 0)
+        {
             number = "0";
             isNegative = false;
             return;
         }
         
         isNegative = (value < 0);
-        if (isNegative) {
+        if (isNegative)
+        {
             value = -value;
         }
         
         number = "";
-        while (value > 0) {
+        while (value > 0)
+        {
             number = char('0' + (value % 10)) + number;
             value /= 10;
         }
     }
-
+    
     // Constructor from string representation
-    BigInt(const string& str) {
-        if (str.empty()) {
+    BigInt(const string &str)
+    {
+        if (str.empty())
+        {
             number = "0";
             isNegative = false;
             return;
         }
         
-        
         size_t start = 0;
-        if (str[0] == '-') {
+        if (str[0] == '-')
+        {
             isNegative = true;
             start = 1;
-        } else if (str[0] == '+') {
+        }
+        else if (str[0] == '+')
+        {
             isNegative = false;
             start = 1;
-        } else {
+        }
+        else
+        {
             isNegative = false;
         }
         
@@ -108,23 +133,29 @@ public:
         
         removeLeadingZeros();
         
-        if (number == "0") {
+        if (number == "0")
+        {
             isNegative = false;
         }
     }
-
+    
     // Copy constructor
-    BigInt(const BigInt& other) {
+    BigInt(const BigInt &other)
+    {
         number = other.number;
         isNegative = other.isNegative;
     }
-
+    
     // Destructor
     ~BigInt()
     {
         // TODO: Implement if needed
     }
+    
+    bool getIsNegative() const { return isNegative; }
+    const std::string &getDigits() const { return number; }
 
+    
     // Assignment operator
     BigInt &operator=(const BigInt &other)
     {
@@ -320,11 +351,10 @@ bool operator!=(const BigInt &lhs, const BigInt &rhs)
         {
             return !lhs.getIsNegative(); // if both positive return true else false{
         }
-        if(lhsdigit[i] > rhsdigit[i])
+        if (lhsdigit[i] > rhsdigit[i])
         {
             return lhs.getIsNegative(); // if both negative return true else false
         }
-        
     }
     return false;
 }
