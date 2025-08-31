@@ -8,35 +8,111 @@ class BigInt {
 
     // Remove unnecessary leading zeros from the number string
     void removeLeadingZeros() {
-        // TODO: Implement this function
-    }
+        if (number.empty()) {
+            number = "0";
+            isNegative = false;
+            return;
+        }
+        
+        size_t firstNonZero = number.find_first_not_of('0');
+        
+        if (firstNonZero == string::npos) {
+            
+            number = "0";
+            isNegative = false;
+        } else {
+            
+            number = number.substr(firstNonZero);
+        }
+        
+        if (number == "0") {
+            isNegative = false;
+        }
+       }
 
     // Compare absolute values of two BigInts (ignore signs)
     // Returns: 1 if |this| > |other|, 0 if equal, -1 if |this| < |other|
     int compareMagnitude(const BigInt& other) const {
-        // TODO: Implement this function
+        string thisNum = number;
+        string otherNum = other.number;
+        
+        if (thisNum.length() > otherNum.length()) {
+            return 1;
+        } else if (thisNum.length() < otherNum.length()) {
+            return -1;
+        }
+        
+        for (size_t i = 0; i < thisNum.length(); i++) {
+            if (thisNum[i] > otherNum[i]) {
+                return 1;
+            } else if (thisNum[i] < otherNum[i]) {
+                return -1;
+            }
+        }
+        
         return 0;
     }
 
 public:
     // Default constructor - initialize to zero
     BigInt() {
-        // TODO: Implement this constructor
+        number = "0";
+        isNegative = false;
     }
 
     // Constructor from 64-bit integer
     BigInt(int64_t value) {
-        // TODO: Implement this constructor
+        if (value == 0) {
+            number = "0";
+            isNegative = false;
+            return;
+        }
+        
+        isNegative = (value < 0);
+        if (isNegative) {
+            value = -value;
+        }
+        
+        number = "";
+        while (value > 0) {
+            number = char('0' + (value % 10)) + number;
+            value /= 10;
+        }
     }
 
     // Constructor from string representation
     BigInt(const string& str) {
-        // TODO: Implement this constructor
+        if (str.empty()) {
+            number = "0";
+            isNegative = false;
+            return;
+        }
+        
+        
+        size_t start = 0;
+        if (str[0] == '-') {
+            isNegative = true;
+            start = 1;
+        } else if (str[0] == '+') {
+            isNegative = false;
+            start = 1;
+        } else {
+            isNegative = false;
+        }
+        
+        number = str.substr(start);
+        
+        removeLeadingZeros();
+        
+        if (number == "0") {
+            isNegative = false;
+        }
     }
 
     // Copy constructor
     BigInt(const BigInt& other) {
-        // TODO: Implement this constructor
+        number = other.number;
+        isNegative = other.isNegative;
     }
 
     // Destructor
