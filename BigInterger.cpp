@@ -262,6 +262,9 @@ class BigInt
     friend istream &operator>>(istream &is, BigInt &num)
     {
         // TODO: Implement this operator
+        string input;
+        is >>input;
+         num =BigInt(input);
         return is;
     }
 
@@ -275,6 +278,8 @@ BigInt operator+(BigInt lhs, const BigInt &rhs)
 {
     BigInt result;
     // TODO: Implement this operator
+    BigInt result = lhs;
+    result +=rhs;
     return result;
 }
 
@@ -283,6 +288,8 @@ BigInt operator-(BigInt lhs, const BigInt &rhs)
 {
     BigInt result;
     // TODO: Implement this operator
+     BigInt result = lhs;
+    result -=rhs;
     return result;
 }
 
@@ -291,6 +298,9 @@ BigInt operator*(BigInt lhs, const BigInt &rhs)
 {
     BigInt result;
     // TODO: Implement this operator
+     BigInt result =lhs;
+    result *= rhs; 
+
     return result;
 }
 
@@ -299,6 +309,8 @@ BigInt operator/(BigInt lhs, const BigInt &rhs)
 {
     BigInt result;
     // TODO: Implement this operator
+    BigInt result =lhs;
+    result /=rhs;
     return result;
 }
 
@@ -307,6 +319,8 @@ BigInt operator%(BigInt lhs, const BigInt &rhs)
 {
     BigInt result;
     // TODO: Implement this operator
+    BigInt result = lhs;
+    result %=rhs;
     return result;
 }
 
@@ -314,7 +328,7 @@ BigInt operator%(BigInt lhs, const BigInt &rhs)
 bool operator==(const BigInt &lhs, const BigInt &rhs)
 {
     // TODO: Implement this operator
-    return false;
+      return (lhs.isNegative == rhs.isNegative && lhs.number == rhs.number);
 }
 
 // Inequality comparison operator (x != y)
