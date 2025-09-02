@@ -441,71 +441,7 @@ public:
     {
         // TODO: Implement this operator
         BigInt temp = *this;
-        if (this->isNegative == 0)
-        {
-            string result = "";
-            int right = this->number.size() - 1;
-            int num2 = 1;
-            int sum = (this->number[right] - '0') + num2;
-            result += (sum % 10 + '0');
-            int carry = sum / 10;
-
-            while (carry > 0)
-            {
-                right = right - 1;
-                int sum = (this->number[right] - '0') + carry;
-                result += (sum % 10 + '0');
-                carry = sum / 10;
-            }
-
-            if (carry == 0)
-            {
-                for (int i = right - 1; i >= 0; i--)
-                {
-                    result += this->number[i] + '0';
-                }
-                reverse(result.begin(), result.end());
-                this->number = result;
-                return temp;
-            }
-        }
-        // otherwise the number will be negative. and if the num equal -12 and wee added 1 to it the number will be 11
-        string result = "";
-        int right = number.size() - 1;
-        int num2 = 1;
-        if ((this->number[right] - '0') >= 1)
-        {
-            int subsraction = (this->number[right] - '0') - num2;
-            result += (subsraction + '0');
-            for (int i = right - 1; i >= 0; i--)
-            {
-                result += this->number[i] + '0';
-            }
-            reverse(result.begin(), result.end());
-            this->number = result;
-            return temp;
-        }
-        while (number[right] == 0)
-        {
-            right--;
-        }
-        int temp2 = (number[right] - '0') - 1;
-        result += (temp2 + '0');
-        right++;
-        while (right < number.size())
-        {
-            if (number[right] == 0)
-            {
-                result += '9';
-            }
-            right++;
-        }
-        reverse(result.begin(), result.end());
-        this->number = result;
-        if (result == "0")
-        {
-            this->isNegative = 0;
-        }
+        ++*this;
         return temp;
     }
 
@@ -586,71 +522,7 @@ public:
     {
         // TODO: Implement this operator
         BigInt temp = *this;
-        if (this->isNegative)
-        {
-            string result = "";
-            int right = this->number.size() - 1;
-            int num2 = 1;
-            int sum = (this->number[right] - '0') + num2;
-            result += (sum % 10 + '0');
-            int carry = sum / 10;
-
-            while (carry > 0)
-            {
-                right = right - 1;
-                int sum = (this->number[right] - '0') + carry;
-                result += (sum % 10 + '0');
-                carry = sum / 10;
-            }
-
-            if (carry == 0)
-            {
-                for (int i = right - 1; i >= 0; i--)
-                {
-                    result += this->number[i] + '0';
-                }
-                reverse(result.begin(), result.end());
-                this->number = result;
-                return temp;
-            }
-        }
-        // otherwise the number will be postive. and if the num equal 12 and wee added -1 to it the number will be 11
-        string result = "";
-        int right = number.size() - 1;
-        int num2 = 1;
-        if ((this->number[right] - '0') >= 1)
-        {
-            int subsraction = (this->number[right] - '0') - num2;
-            result += (subsraction + '0');
-            for (int i = right - 1; i >= 0; i--)
-            {
-                result += this->number[i] + '0';
-            }
-            reverse(result.begin(), result.end());
-            this->number = result;
-            return temp;
-        }
-        while (number[right] == 0)
-        {
-            right--;
-        }
-        int temp2 = (number[right] - '0') - 1;
-        result += (temp2 + '0');
-        right++;
-        while (right < number.size())
-        {
-            if (number[right] == 0)
-            {
-                result += '9';
-            }
-            right++;
-        }
-        reverse(result.begin(), result.end());
-        this->number = result;
-        if (result == "0")
-        {
-            this->isNegative = 0;
-        }
+        --*this;
         return temp;
     }
 
