@@ -8,7 +8,7 @@ class BigInt
 {
     string number;   // Stores the number as a string
     bool isNegative; // True if number is negative
-    
+
     // Remove unnecessary leading zeros from the number string
 
     void removeLeadingZeros()
@@ -39,7 +39,7 @@ class BigInt
             isNegative = false;
         }
     }
-    
+
     // Compare absolute values of two BigInts (ignore signs)
     // Returns: 1 if |this| > |other|, 0 if equal, -1 if |this| < |other|
     int compareMagnitude(const BigInt &other) const
@@ -155,11 +155,15 @@ public:
     bool getIsNegative() const { return isNegative; }
     const std::string &getDigits() const { return number; }
 
-    
     // Assignment operator
     BigInt &operator=(const BigInt &other)
     {
         // TODO: Implement this operator
+        if (this != &other)
+        {
+            number = other.number;
+            isNegative = other.isNegative;
+        }
         return *this;
     }
 
@@ -331,7 +335,7 @@ public:
         // its easier to compute the modulo while the numnbers are postive
         divident.isNegative = false;
         divisor.isNegative = false;
-        
+
         if (divident.compareMagnitude(divisor) == -1)
         {
             return *this;
@@ -340,11 +344,13 @@ public:
         BigInt reminder("0");
         int i = 0;
 
-        while(i < divident.number.size()){
+        while (i < divident.number.size())
+        {
             reminder.number += divident.number[i];
             reminder.removeLeadingZeros();
 
-            while(reminder.compareMagnitude(divisor) >= 0){
+            while (reminder.compareMagnitude(divisor) >= 0)
+            {
                 reminder -= divisor;
             }
 
@@ -680,6 +686,9 @@ public:
     // Friend declarations for comparison operators
     friend bool operator==(const BigInt &lhs, const BigInt &rhs);
     friend bool operator<(const BigInt &lhs, const BigInt &rhs);
+    friend bool operator<=(const BigInt &lhs, const BigInt &rhs);
+    friend bool operator>(const BigInt &lhs, const BigInt &rhs);
+    friend bool operator>=(const BigInt &lhs, const BigInt &rhs);
 };
 
 // Binary addition operator (x + y)
