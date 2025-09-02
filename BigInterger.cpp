@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <cstdint>
+#include <algorithm>
 using namespace std;
 
 class BigInt
@@ -8,8 +9,6 @@ class BigInt
     string number;   // Stores the number as a string
     bool isNegative; // True if number is negative
 
-
-    
     // Remove unnecessary leading zeros from the number string
 
     void removeLeadingZeros()
@@ -20,34 +19,34 @@ class BigInt
             isNegative = false;
             return;
         }
-        
+
         size_t firstNonZero = number.find_first_not_of('0');
 
         if (firstNonZero == string::npos)
         {
-            
+
             number = "0";
             isNegative = false;
         }
         else
         {
-            
+
             number = number.substr(firstNonZero);
         }
-        
+
         if (number == "0")
         {
             isNegative = false;
         }
     }
-    
+
     // Compare absolute values of two BigInts (ignore signs)
     // Returns: 1 if |this| > |other|, 0 if equal, -1 if |this| < |other|
     int compareMagnitude(const BigInt &other) const
     {
         string thisNum = number;
         string otherNum = other.number;
-        
+
         if (thisNum.length() > otherNum.length())
         {
             return 1;
@@ -56,7 +55,7 @@ class BigInt
         {
             return -1;
         }
-        
+
         for (size_t i = 0; i < thisNum.length(); i++)
         {
             if (thisNum[i] > otherNum[i])
@@ -68,17 +67,18 @@ class BigInt
                 return -1;
             }
         }
+        return 0;
     }
-    
-    public:
+
+public:
     // Default constructor - initialize to zero
-    
+
     BigInt()
     {
         number = "0";
         isNegative = false;
     }
-    
+
     // Constructor from 64-bit integer
     BigInt(int64_t value)
     {
@@ -88,13 +88,13 @@ class BigInt
             isNegative = false;
             return;
         }
-        
+
         isNegative = (value < 0);
         if (isNegative)
         {
             value = -value;
         }
-        
+
         number = "";
         while (value > 0)
         {
@@ -102,7 +102,7 @@ class BigInt
             value /= 10;
         }
     }
-    
+
     // Constructor from string representation
     BigInt(const string &str)
     {
@@ -112,7 +112,7 @@ class BigInt
             isNegative = false;
             return;
         }
-        
+
         size_t start = 0;
         if (str[0] == '-')
         {
@@ -128,53 +128,49 @@ class BigInt
         {
             isNegative = false;
         }
-        
+
         number = str.substr(start);
-        
+
         removeLeadingZeros();
-        
+
         if (number == "0")
         {
             isNegative = false;
         }
     }
-    
+
     // Copy constructor
     BigInt(const BigInt &other)
     {
         number = other.number;
         isNegative = other.isNegative;
     }
-    
+
     // Destructor
     ~BigInt()
     {
         // TODO: Implement if needed
     }
-    
+
     bool getIsNegative() const { return isNegative; }
     const std::string &getDigits() const { return number; }
-
-    
-    // Assignment operator
-    BigInt &operator=(const BigInt &other)
-    {
-        // TODO: Implement this operator
-        return *this;
-    }
 
     // Unary negation operator (-x)
     BigInt operator-() const
     {
-        BigInt result;
+        BigInt result = *this;
         // TODO: Implement negation logic
+        if (result.number != "0")
+        {
+            result.isNegative = !result.isNegative;
+        }
         return result;
     }
 
     // Unary plus operator (+x)
     BigInt operator+() const
     {
-        BigInt result;
+        BigInt result = *this;
         // TODO: Implement this operator
         return result;
     }
@@ -183,6 +179,38 @@ class BigInt
     BigInt &operator+=(const BigInt &other)
     {
         // TODO: Implement this operator
+        if (other.number == "0")
+        {
+            return *this; // Adding zero does nothing
+        }
+        if (number == "0")
+        {
+            *this = other; // If we're zero, become the other number
+            return *this;
+        }
+        if (isNegative == other.isNegative)
+        {
+            string result;
+            int carry = 0;
+            int i = number.length() - 1;
+            int j = other.number.length() - 1;
+
+            while (i >= 0 || j >= 0)
+            {
+                int digit1 = (i >= 0) ? number[i--] - '0' : 0;
+                int digit2 = (j >= 0) ? other.number[j--] - '0' : 0;
+                int sum = digit1 + digit2 + carry;
+                carry = sum / 10;
+                result = char('0' + (sum % 10)) + result;
+            }
+            number = result;
+        }
+        else
+        {
+            BigInt temp = other;
+            temp.isNegative = !temp.isNegative;
+            *this -= temp;
+        }
         return *this;
     }
 
@@ -190,6 +218,16 @@ class BigInt
     BigInt &operator-=(const BigInt &other)
     {
         // TODO: Implement this operator
+        if (other.number == "0")
+        {
+            return *this;
+        }
+
+        BigInt negativeOther = other;
+        negativeOther.isNegative = !negativeOther.isNegative;
+
+        *this += negativeOther;
+
         return *this;
     }
 
@@ -197,6 +235,34 @@ class BigInt
     BigInt &operator*=(const BigInt &other)
     {
         // TODO: Implement this operator
+        if (number == "0" || other.number == "0")
+        {
+            number = "0";
+            isNegative = false;
+            return *this;
+        }
+        if (other.number == "1")
+        {
+
+            isNegative = (isNegative != other.isNegative);
+            return *this;
+        }
+
+        BigInt original = *this;
+        BigInt counter = other;
+        counter.isNegative = false;
+
+        number = "0";
+        isNegative = false;
+
+        while (counter.number != "0")
+        {
+            *this += original;
+            counter -= BigInt(1);
+        }
+
+        isNegative = (original.isNegative != other.isNegative);
+
         return *this;
     }
 
@@ -204,6 +270,39 @@ class BigInt
     BigInt &operator/=(const BigInt &other)
     {
         // TODO: Implement this operator
+        if (other.number == "0")
+        {
+            throw runtime_error("Division by zero!");
+        }
+
+        if (number == "0")
+        {
+            return *this;
+        }
+        if (other.number == "1")
+        {
+            isNegative = (isNegative != other.isNegative);
+            return *this;
+        }
+
+        BigInt dividend = *this;
+        BigInt divisor = other;
+        BigInt result(0);
+        BigInt remainder = dividend;
+
+        dividend.isNegative = false;
+        divisor.isNegative = false;
+        remainder.isNegative = false;
+
+        while (remainder.compareMagnitude(divisor) >= 0)
+        {
+            remainder -= divisor;
+            result += BigInt(1);
+        }
+
+        result.isNegative = (isNegative != other.isNegative);
+        *this = result;
+
         return *this;
     }
 
@@ -211,6 +310,43 @@ class BigInt
     BigInt &operator%=(const BigInt &other)
     {
         // TODO: Implement this operator
+        // a ponter to the first digit;
+        if (other.number == "0")
+        {
+            cout << "Error : you can't devide by 0";
+            return *this;
+        }
+        // just the start.
+        BigInt divident = *this;
+        BigInt divisor = other;
+
+        // its easier to compute the modulo while the numnbers are postive
+        divident.isNegative = false;
+        divisor.isNegative = false;
+        
+        if (divident.compareMagnitude(divisor) == -1)
+        {
+            return *this;
+        }
+
+        BigInt reminder("0");
+        int i = 0;
+
+        while(i < divident.number.size()){
+            reminder.number += divident.number[i];
+            reminder.removeLeadingZeros();
+
+            while(reminder.compareMagnitude(divisor) >= 0){
+                reminder -= divisor;
+            }
+
+            i++;
+        }
+        this->number = reminder.number;
+        // the modulo result sould not be a negative
+        this->isNegative = false;
+        this->removeLeadingZeros();
+
         return *this;
     }
 
@@ -218,14 +354,144 @@ class BigInt
     BigInt &operator++()
     {
         // TODO: Implement this operator
+        if (this->isNegative == 0)
+        {
+            string result = "";
+            int right = this->number.size() - 1;
+            int num2 = 1;
+            int sum = (this->number[right] - '0') + num2;
+            result += (sum % 10 + '0');
+            int carry = sum / 10;
+
+            while (carry > 0)
+            {
+                right = right - 1;
+                int sum = (this->number[right] - '0') + carry;
+                result += (sum % 10 + '0');
+                carry = sum / 10;
+            }
+
+            if (carry == 0)
+            {
+                for (int i = right - 1; i >= 0; i--)
+                {
+                    result += this->number[i] + '0';
+                }
+                reverse(result.begin(), result.end());
+                this->number = result;
+                return *this;
+            }
+        }
+        // otherwise the number will be negative. and if the num equal -12 and wee added 1 to it the number will be 11
+        string result = "";
+        int right = number.size() - 1;
+        int num2 = 1;
+        if ((this->number[right] - '0') >= 1)
+        {
+            int subsraction = (this->number[right] - '0') - num2;
+            result += (subsraction + '0');
+            for (int i = right - 1; i >= 0; i--)
+            {
+                result += this->number[i] + '0';
+            }
+            reverse(result.begin(), result.end());
+            this->number = result;
+            return *this;
+        }
+        while (number[right] == 0)
+        {
+            right--;
+        }
+        int temp = (number[right] - '0') - 1;
+        result += (temp + '0');
+        right++;
+        while (right < number.size())
+        {
+            if (number[right] == 0)
+            {
+                result += '9';
+            }
+            right++;
+        }
+        reverse(result.begin(), result.end());
+        this->number = result;
+        if (result == "0")
+        {
+            this->isNegative = 0;
+        }
         return *this;
     }
 
     // Post-increment operator (x++)
     BigInt operator++(int)
     {
-        BigInt temp;
         // TODO: Implement this operator
+        BigInt temp = *this;
+        if (this->isNegative == 0)
+        {
+            string result = "";
+            int right = this->number.size() - 1;
+            int num2 = 1;
+            int sum = (this->number[right] - '0') + num2;
+            result += (sum % 10 + '0');
+            int carry = sum / 10;
+
+            while (carry > 0)
+            {
+                right = right - 1;
+                int sum = (this->number[right] - '0') + carry;
+                result += (sum % 10 + '0');
+                carry = sum / 10;
+            }
+
+            if (carry == 0)
+            {
+                for (int i = right - 1; i >= 0; i--)
+                {
+                    result += this->number[i] + '0';
+                }
+                reverse(result.begin(), result.end());
+                this->number = result;
+                return temp;
+            }
+        }
+        // otherwise the number will be negative. and if the num equal -12 and wee added 1 to it the number will be 11
+        string result = "";
+        int right = number.size() - 1;
+        int num2 = 1;
+        if ((this->number[right] - '0') >= 1)
+        {
+            int subsraction = (this->number[right] - '0') - num2;
+            result += (subsraction + '0');
+            for (int i = right - 1; i >= 0; i--)
+            {
+                result += this->number[i] + '0';
+            }
+            reverse(result.begin(), result.end());
+            this->number = result;
+            return temp;
+        }
+        while (number[right] == 0)
+        {
+            right--;
+        }
+        int temp2 = (number[right] - '0') - 1;
+        result += (temp2 + '0');
+        right++;
+        while (right < number.size())
+        {
+            if (number[right] == 0)
+            {
+                result += '9';
+            }
+            right++;
+        }
+        reverse(result.begin(), result.end());
+        this->number = result;
+        if (result == "0")
+        {
+            this->isNegative = 0;
+        }
         return temp;
     }
 
@@ -233,14 +499,144 @@ class BigInt
     BigInt &operator--()
     {
         // TODO: Implement this operator
+        if (this->isNegative)
+        {
+            string result = "";
+            int right = this->number.size() - 1;
+            int num2 = 1;
+            int sum = (this->number[right] - '0') + num2;
+            result += (sum % 10 + '0');
+            int carry = sum / 10;
+
+            while (carry > 0)
+            {
+                right = right - 1;
+                int sum = (this->number[right] - '0') + carry;
+                result += (sum % 10 + '0');
+                carry = sum / 10;
+            }
+
+            if (carry == 0)
+            {
+                for (int i = right - 1; i >= 0; i--)
+                {
+                    result += this->number[i] + '0';
+                }
+                reverse(result.begin(), result.end());
+                this->number = result;
+                return *this;
+            }
+        }
+        // otherwise the number will be postive. and if the num equal 12 and wee added -1 to it the number will be 11
+        string result = "";
+        int right = number.size() - 1;
+        int num2 = 1;
+        if ((this->number[right] - '0') >= 1)
+        {
+            int subsraction = (this->number[right] - '0') - num2;
+            result += (subsraction + '0');
+            for (int i = right - 1; i >= 0; i--)
+            {
+                result += this->number[i] + '0';
+            }
+            reverse(result.begin(), result.end());
+            this->number = result;
+            return *this;
+        }
+        while (number[right] == 0)
+        {
+            right--;
+        }
+        int temp = (number[right] - '0') - 1;
+        result += (temp + '0');
+        right++;
+        while (right < number.size())
+        {
+            if (number[right] == 0)
+            {
+                result += '9';
+            }
+            right++;
+        }
+        reverse(result.begin(), result.end());
+        this->number = result;
+        if (result == "0")
+        {
+            this->isNegative = 0;
+        }
         return *this;
     }
 
     // Post-decrement operator (x--)
     BigInt operator--(int)
     {
-        BigInt temp;
         // TODO: Implement this operator
+        BigInt temp = *this;
+        if (this->isNegative)
+        {
+            string result = "";
+            int right = this->number.size() - 1;
+            int num2 = 1;
+            int sum = (this->number[right] - '0') + num2;
+            result += (sum % 10 + '0');
+            int carry = sum / 10;
+
+            while (carry > 0)
+            {
+                right = right - 1;
+                int sum = (this->number[right] - '0') + carry;
+                result += (sum % 10 + '0');
+                carry = sum / 10;
+            }
+
+            if (carry == 0)
+            {
+                for (int i = right - 1; i >= 0; i--)
+                {
+                    result += this->number[i] + '0';
+                }
+                reverse(result.begin(), result.end());
+                this->number = result;
+                return temp;
+            }
+        }
+        // otherwise the number will be postive. and if the num equal 12 and wee added -1 to it the number will be 11
+        string result = "";
+        int right = number.size() - 1;
+        int num2 = 1;
+        if ((this->number[right] - '0') >= 1)
+        {
+            int subsraction = (this->number[right] - '0') - num2;
+            result += (subsraction + '0');
+            for (int i = right - 1; i >= 0; i--)
+            {
+                result += this->number[i] + '0';
+            }
+            reverse(result.begin(), result.end());
+            this->number = result;
+            return temp;
+        }
+        while (number[right] == 0)
+        {
+            right--;
+        }
+        int temp2 = (number[right] - '0') - 1;
+        result += (temp2 + '0');
+        right++;
+        while (right < number.size())
+        {
+            if (number[right] == 0)
+            {
+                result += '9';
+            }
+            right++;
+        }
+        reverse(result.begin(), result.end());
+        this->number = result;
+        if (result == "0")
+        {
+            this->isNegative = 0;
+        }
         return temp;
     }
 
@@ -248,13 +644,18 @@ class BigInt
     string toString() const
     {
         // TODO: Implement this function
-        return "";
+        if (isNegative && number != 0)
+        {
+            return '-' + number;
+        }
+        return number;
     }
 
     // Output stream operator (for printing)
     friend ostream &operator<<(ostream &os, const BigInt &num)
     {
         // TODO: Implement this operator
+        os << num.toString();
         return os;
     }
 
@@ -263,8 +664,8 @@ class BigInt
     {
         // TODO: Implement this operator
         string input;
-        is >>input;
-         num =BigInt(input);
+        is >> input;
+        num = BigInt(input);
         return is;
     }
 
@@ -274,12 +675,14 @@ class BigInt
 };
 
 // Binary addition operator (x + y)
+// 1hs = 123 , rhs = 456
+
 BigInt operator+(BigInt lhs, const BigInt &rhs)
 {
     BigInt result;
     // TODO: Implement this operator
     BigInt result = lhs;
-    result +=rhs;
+    result += rhs;
     return result;
 }
 
@@ -288,8 +691,8 @@ BigInt operator-(BigInt lhs, const BigInt &rhs)
 {
     BigInt result;
     // TODO: Implement this operator
-     BigInt result = lhs;
-    result -=rhs;
+    BigInt result = lhs;
+    result -= rhs;
     return result;
 }
 
@@ -298,8 +701,8 @@ BigInt operator*(BigInt lhs, const BigInt &rhs)
 {
     BigInt result;
     // TODO: Implement this operator
-     BigInt result =lhs;
-    result *= rhs; 
+    BigInt result = lhs;
+    result *= rhs;
 
     return result;
 }
@@ -309,8 +712,8 @@ BigInt operator/(BigInt lhs, const BigInt &rhs)
 {
     BigInt result;
     // TODO: Implement this operator
-    BigInt result =lhs;
-    result /=rhs;
+    BigInt result = lhs;
+    result /= rhs;
     return result;
 }
 
@@ -320,7 +723,7 @@ BigInt operator%(BigInt lhs, const BigInt &rhs)
     BigInt result;
     // TODO: Implement this operator
     BigInt result = lhs;
-    result %=rhs;
+    result %= rhs;
     return result;
 }
 
@@ -328,7 +731,7 @@ BigInt operator%(BigInt lhs, const BigInt &rhs)
 bool operator==(const BigInt &lhs, const BigInt &rhs)
 {
     // TODO: Implement this operator
-      return (lhs.isNegative == rhs.isNegative && lhs.number == rhs.number);
+    return (lhs.isNegative == rhs.isNegative && lhs.number == rhs.number);
 }
 
 // Inequality comparison operator (x != y)
