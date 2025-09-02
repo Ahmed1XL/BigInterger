@@ -8,7 +8,7 @@ class BigInt
 {
     string number;   // Stores the number as a string
     bool isNegative; // True if number is negative
-
+    
     // Remove unnecessary leading zeros from the number string
 
     void removeLeadingZeros()
@@ -39,7 +39,7 @@ class BigInt
             isNegative = false;
         }
     }
-
+    
     // Compare absolute values of two BigInts (ignore signs)
     // Returns: 1 if |this| > |other|, 0 if equal, -1 if |this| < |other|
     int compareMagnitude(const BigInt &other) const
@@ -154,6 +154,14 @@ public:
 
     bool getIsNegative() const { return isNegative; }
     const std::string &getDigits() const { return number; }
+
+    
+    // Assignment operator
+    BigInt &operator=(const BigInt &other)
+    {
+        // TODO: Implement this operator
+        return *this;
+    }
 
     // Unary negation operator (-x)
     BigInt operator-() const
@@ -780,8 +788,25 @@ bool operator!=(const BigInt &lhs, const BigInt &rhs)
 bool operator<(const BigInt &lhs, const BigInt &rhs)
 {
     // TODO: Implement this operator
-
-    //    2
+    // 1. Handle different signs
+    if (lhs.getIsNegative() && !rhs.getIsNegative())
+    {
+        return true; // -VE > +VE
+    }
+    if (!lhs.getIsNegative() && rhs.getIsNegative())
+    {
+        return false; // +VE > -VE
+    }
+    // 2. Both have same sign - compare
+    int cmp = lhs.compareMagnitude(rhs);
+    if (lhs.getIsNegative())
+    {
+        return cmp > 0; // both negative
+    }
+    else
+    {
+        return cmp < 0; // both positive
+    }
     return false;
 }
 
@@ -789,7 +814,29 @@ bool operator<(const BigInt &lhs, const BigInt &rhs)
 bool operator<=(const BigInt &lhs, const BigInt &rhs)
 {
     // TODO: Implement this operator
-    //    3
+    // 1. Handle different signs
+    if (lhs.getIsNegative() && !rhs.getIsNegative())
+    {
+        return true; // -VE <= +VE
+    }
+
+    if (!lhs.getIsNegative() && rhs.getIsNegative())
+    {
+        return false; // +VE => -VE
+    }
+    int cmp = lhs.compareMagnitude(rhs);
+    if (cmp == 0)
+        return true; // equal
+    if (lhs.getIsNegative())
+    {
+        return cmp > 0; // both negative
+    }
+    else
+    {
+        return cmp < 0; // both positive
+    }
+
+    // 2. Both have same sign - compare
     return false;
 }
 
@@ -798,14 +845,51 @@ bool operator>(const BigInt &lhs, const BigInt &rhs)
 {
     // TODO: Implement this operator'
     //    4
+    if (lhs.getIsNegative() && !rhs.getIsNegative())
+    {
+        return false; // -VE < +VE
+    }
+    if (!lhs.getIsNegative() && rhs.getIsNegative())
+    {
+        return true; // +VE > -VE
+    }
+    int cmop = lhs.compareMagnitude(rhs);
+    if (lhs.getIsNegative())
+    {
+        return cmop < 0; // both negative
+    }
+    else
+    {
+        return cmop > 0; // both positive
+    }
     return false;
+    /*
+    return rhs < lhs;
+    */
 }
 
 // Greater-than-or-equal comparison operator (x >= y)
 bool operator>=(const BigInt &lhs, const BigInt &rhs)
 {
-    // TODO: Implement this operator
-    //      5
+    if (lhs.getIsNegative() && !rhs.getIsNegative())
+    {
+        return false; // -VE < +VE
+    }
+    if (!lhs.getIsNegative() && rhs.getIsNegative())
+    {
+        return true; // +VE > -VE
+    }
+    int cmp = lhs.compareMagnitude(rhs);
+    if (cmp == 0)
+        return true; // equal
+    if (lhs.getIsNegative())
+    {
+        return cmp < 0; // both negative
+    }
+    else
+    {
+        return cmp > 0; // both positive
+    }
     return false;
 }
 
