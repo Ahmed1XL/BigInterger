@@ -530,7 +530,7 @@ public:
     string toString() const
     {
         // TODO: Implement this function
-        if (isNegative && number != 0)
+        if (isNegative && number != "0")
         {
             return '-' + number;
         }
