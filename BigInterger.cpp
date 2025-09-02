@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdint>
 #include <algorithm>
+#include <vector>
 using namespace std;
 
 class BigInt
@@ -142,8 +143,8 @@ public:
     // Copy constructor
     BigInt(const BigInt &other)
     {
-        number = other.number;
-        isNegative = other.isNegative;
+        this->number = other.number;
+        this->isNegative = other.isNegative;
     }
 
     // Destructor
@@ -215,6 +216,10 @@ public:
                 carry = sum / 10;
                 result = char('0' + (sum % 10)) + result;
             }
+            if (carry > 0)
+                result = char(carry + '0') + result;
+
+            removeLeadingZeros();
             number = result;
         }
         else
@@ -229,18 +234,61 @@ public:
     // Subtraction assignment operator (x -= y)
     BigInt &operator-=(const BigInt &other)
     {
-        // TODO: Implement this operator
-        if (other.number == "0")
+        // same sign: normal subtraction
+        if ((isNegative && other.isNegative) || (!isNegative && !other.isNegative))
         {
+            if (compareMagnitude(other) < 0)
+            {
+                BigInt temp = other;
+                temp -= *this;
+                *this = temp;
+                isNegative = !isNegative;
+                removeLeadingZeros();
+                return *this;
+            }
+
+            string temp1 = number;
+            string temp2 = other.number;
+            string result;
+            int pointer1 = temp1.size() - 1;
+            int pointer2 = temp2.size() - 1;
+
+            while (pointer1 >= 0 || pointer2 >= 0)
+            {
+                int n1 = pointer1 >= 0 ? temp1[pointer1] - '0' : 0;
+                int n2 = pointer2 >= 0 ? temp2[pointer2] - '0' : 0;
+                if (n1 < n2) // borrow needed
+                {
+                    int borrowIndex = pointer1 - 1;
+                    while (borrowIndex >= 0 && temp1[borrowIndex] == '0')
+                    {
+                        temp1[borrowIndex] = '9';
+                        borrowIndex--;
+                    }
+                    if (borrowIndex >= 0)
+                        temp1[borrowIndex]--; // subtract 1 from first non-zero
+                    n1 += 10;
+                }
+                int sub = n1 - n2;
+                result += char(sub + '0');
+
+                pointer1--;
+                pointer2--;
+            }
+
+            reverse(result.begin(), result.end());
+            number = result;
+            removeLeadingZeros();
             return *this;
         }
-
-        BigInt negativeOther = other;
-        negativeOther.isNegative = !negativeOther.isNegative;
-
-        *this += negativeOther;
-
-        return *this;
+        // different signs: convert to addition
+        else
+        {
+            BigInt temp = other;
+            temp.isNegative = !temp.isNegative;
+            *this += temp;
+            return *this;
+        }
     }
 
     // Multiplication assignment operator (x *= y)
@@ -253,28 +301,38 @@ public:
             isNegative = false;
             return *this;
         }
-        if (other.number == "1")
-        {
 
-            isNegative = (isNegative != other.isNegative);
-            return *this;
+        string num1 = number;
+        string num2 = other.number;
+        int n1 = num1.size();
+        int n2 = num2.size();
+        vector<int> result(n1 + n2, 0);
+
+        // Multiply each digit
+        for (int i = n1 - 1; i >= 0; i--)
+        {
+            for (int j = n2 - 1; j >= 0; j--)
+            {
+                int mul = (num1[i] - '0') * (num2[j] - '0');
+                int sum = mul + result[i + j + 1];
+                result[i + j + 1] = sum % 10;
+                result[i + j] += sum / 10;
+            }
         }
 
-        BigInt original = *this;
-        BigInt counter = other;
-        counter.isNegative = false;
-
-        number = "0";
-        isNegative = false;
-
-        while (counter.number != "0")
+        // Convert result vector to string
+        string resStr;
+        bool leadingZero = true;
+        for (int val : result)
         {
-            *this += original;
-            counter -= BigInt(1);
+            if (val == 0 && leadingZero)
+                continue;
+            leadingZero = false;
+            resStr += char(val + '0');
         }
 
-        isNegative = (original.isNegative != other.isNegative);
-
+        number = resStr.empty() ? "0" : resStr;
+        isNegative = (isNegative != other.isNegative);
         return *this;
     }
 
@@ -331,7 +389,7 @@ public:
         // just the start.
         BigInt divident = *this;
         BigInt divisor = other;
-
+        bool dividendNegative = this->isNegative;
         // its easier to compute the modulo while the numnbers are postive
         divident.isNegative = false;
         divisor.isNegative = false;
@@ -356,9 +414,9 @@ public:
 
             i++;
         }
-        this->number = reminder.number;
         // the modulo result sould not be a negative
-        this->isNegative = false;
+        this->number = reminder.number;
+        this->isNegative = (dividendNegative);
         this->removeLeadingZeros();
 
         return *this;
@@ -389,7 +447,7 @@ public:
             {
                 for (int i = right - 1; i >= 0; i--)
                 {
-                    result += this->number[i] + '0';
+                    result += this->number[i];
                 }
                 reverse(result.begin(), result.end());
                 this->number = result;
@@ -406,7 +464,7 @@ public:
             result += (subsraction + '0');
             for (int i = right - 1; i >= 0; i--)
             {
-                result += this->number[i] + '0';
+                result += this->number[i];
             }
             reverse(result.begin(), result.end());
             this->number = result;
@@ -470,7 +528,7 @@ public:
             {
                 for (int i = right - 1; i >= 0; i--)
                 {
-                    result += this->number[i] + '0';
+                    result += this->number[i];
                 }
                 reverse(result.begin(), result.end());
                 this->number = result;
@@ -487,7 +545,7 @@ public:
             result += (subsraction + '0');
             for (int i = right - 1; i >= 0; i--)
             {
-                result += this->number[i] + '0';
+                result += this->number[i];
             }
             reverse(result.begin(), result.end());
             this->number = result;
@@ -568,7 +626,6 @@ public:
 
 BigInt operator+(BigInt lhs, const BigInt &rhs)
 {
-    BigInt result;
     // TODO: Implement this operator
     BigInt result = lhs;
     result += rhs;
@@ -578,7 +635,6 @@ BigInt operator+(BigInt lhs, const BigInt &rhs)
 // Binary subtraction operator (x - y)
 BigInt operator-(BigInt lhs, const BigInt &rhs)
 {
-    BigInt result;
     // TODO: Implement this operator
     BigInt result = lhs;
     result -= rhs;
@@ -588,7 +644,6 @@ BigInt operator-(BigInt lhs, const BigInt &rhs)
 // Binary multiplication operator (x * y)
 BigInt operator*(BigInt lhs, const BigInt &rhs)
 {
-    BigInt result;
     // TODO: Implement this operator
     BigInt result = lhs;
     result *= rhs;
@@ -599,7 +654,6 @@ BigInt operator*(BigInt lhs, const BigInt &rhs)
 // Binary division operator (x / y)
 BigInt operator/(BigInt lhs, const BigInt &rhs)
 {
-    BigInt result;
     // TODO: Implement this operator
     BigInt result = lhs;
     result /= rhs;
@@ -609,7 +663,6 @@ BigInt operator/(BigInt lhs, const BigInt &rhs)
 // Binary modulus operator (x % y)
 BigInt operator%(BigInt lhs, const BigInt &rhs)
 {
-    BigInt result;
     // TODO: Implement this operator
     BigInt result = lhs;
     result %= rhs;
@@ -629,14 +682,11 @@ bool operator!=(const BigInt &lhs, const BigInt &rhs)
     //    1
     // First, handle the simple case: compare the signs.
 
-    if (lhs.getIsNegative() && !rhs.getIsNegative())
+    if (lhs.getIsNegative() != rhs.getIsNegative())
     {
         return true;
     }
-    if (!lhs.getIsNegative() && rhs.getIsNegative())
-    {
-        return false;
-    }
+
     // 2. Both numbers have the SAME sign (both positive or both negative)
     const std ::string &lhsdigit = lhs.getDigits();
     const std ::string &rhsdigit = rhs.getDigits();
@@ -783,63 +833,69 @@ int main()
     cout << "The tests below will work once you implement them correctly." << endl
          << endl;
 
-    /*
     // Test 1: Constructors and basic output
     cout << "1. Constructors and output:" << endl;
-    BigInt a(12345);              // Should create BigInt from integer
-    BigInt b("-67890");           // Should create BigInt from string
-    BigInt c("0");                // Should handle zero correctly
-    BigInt d = a;                 // Should use copy constructor
-    cout << "a (from int): " << a << endl;        // Should print "12345"
-    cout << "b (from string): " << b << endl;     // Should print "-67890"
-    cout << "c (zero): " << c << endl;            // Should print "0"
-    cout << "d (copy of a): " << d << endl << endl; // Should print "12345"
-
-    // Test 2: Arithmetic operations
-    cout << "2. Arithmetic operations:" << endl;
-    cout << "a + b = " << a + b << endl;          // Should calculate 12345 + (-67890)
-    cout << "a - b = " << a - b << endl;          // Should calculate 12345 - (-67890)
-    cout << "a * b = " << a * b << endl;          // Should calculate 12345 * (-67890)
-    cout << "b / a = " << b / a << endl;          // Should calculate (-67890) / 12345
-    cout << "a % 100 = " << a % BigInt(100) << endl << endl; // Should calculate 12345 % 100
+    BigInt a(12345);                          // Should create BigInt from integer
+    BigInt b("-67890");                       // Should create BigInt from string
+    BigInt c("0");                            // Should handle zero correctly
+    BigInt d = a;                             // Should use copy constructor
+    cout << "a (from int): " << a << endl;    // Should print "12345"
+    cout << "b (from string): " << b << endl; // Should print "-67890"
+    cout << "c (zero): " << c << endl;        // Should print "0"
+    cout << "d (copy of a): " << d << endl
+         << endl; // Should print "12345"
 
     // Test 3: Relational operators
     cout << "3. Relational operators:" << endl;
-    cout << "a == d: " << (a == d) << endl;       // Should be true (12345 == 12345)
-    cout << "a != b: " << (a != b) << endl;       // Should be true (12345 != -67890)
-    cout << "a < b: " << (a < b) << endl;         // Should be false (12345 < -67890)
-    cout << "a > b: " << (a > b) << endl;         // Should be true (12345 > -67890)
-    cout << "c == 0: " << (c == BigInt(0)) << endl << endl; // Should be true (0 == 0)
+    cout << "a == d: " << (a == d) << endl; // Should be true (12345 == 12345)
+    cout << "a != b: " << (a != b) << endl; // Should be true (12345 != -67890)
+    cout << "a < b: " << (a < b) << endl;   // Should be false (12345 < -67890)
+    cout << "a > b: " << (a > b) << endl;   // Should be true (12345 > -67890)
+    cout << "c == 0: " << (c == BigInt(0)) << endl
+         << endl; // Should be true (0 == 0)
+
+    // Test 2: Arithmetic operations
+    cout << "2. Arithmetic operations:" << endl;
+    cout << "a + b = " << a + b << endl; // Should calculate 12345 + (-67890)
+    cout << "a - b = " << a - b << endl; // Should calculate 12345 - (-67890)
+    cout << "a * b = " << a * b << endl; // Should calculate 12345 * (-67890)
+    cout << "b / a = " << b / a << endl; // Should calculate (-67890) / 12345
+    cout << "a % 100 = " << a % BigInt(100) << endl
+         << endl; // Should calculate 12345 % 100
 
     // Test 4: Unary operators and increments
     cout << "4. Unary operators and increments:" << endl;
-    cout << "-a: " << -a << endl;                 // Should print "-12345"
-    cout << "++a: " << ++a << endl;               // Should increment and print "12346"
-    cout << "a--: " << a-- << endl;               // Should print "12346" then decrement
-    cout << "a after decrement: " << a << endl << endl; // Should print "12345"
+    cout << "-a: " << -a << endl;   // Should print "-12345"
+    cout << "++a: " << ++a << endl; // Should increment and print "12346"
+    cout << "a--: " << a-- << endl; // Should print "12346" then decrement
+    cout << "a after decrement: " << a << endl
+         << endl; // Should print "12345"
 
     // Test 5: Large number operations
     cout << "5. Large number operations:" << endl;
     BigInt num1("12345678901234567890");
     BigInt num2("98765432109876543210");
     cout << "Very large addition: " << num1 + num2 << endl;
-    cout << "Very large multiplication: " << num1 * num2 << endl << endl;
+    cout << "Very large multiplication: " << num1 * num2 << endl
+         << endl;
 
     // Test 6: Edge cases and error handling
     cout << "6. Edge cases:" << endl;
     BigInt zero(0);
     BigInt one(1);
-    try {
-        BigInt result = one / zero;               // Should throw division by zero error
+    try
+    {
+        BigInt result = one / zero; // Should throw division by zero error
         cout << "Division by zero succeeded (unexpected)" << endl;
-    } catch (const runtime_error& e) {
+    }
+    catch (const runtime_error &e)
+    {
         cout << "Division by zero correctly threw error: " << e.what() << endl;
     }
-    cout << "Multiplication by zero: " << one * zero << endl;        // Should be "0"
-    cout << "Negative multiplication: " << BigInt(-5) * BigInt(3) << endl;  // Should be "-15"
-    cout << "Negative division: " << BigInt(-10) / BigInt(3) << endl;       // Should be "-3"
-    cout << "Negative modulus: " << BigInt(-10) % BigInt(3) << endl;        // Should be "-1"
-    */
+    cout << "Multiplication by zero: " << one * zero << endl;              // Should be "0"
+    cout << "Negative multiplication: " << BigInt(-5) * BigInt(3) << endl; // Should be "-15"
+    cout << "Negative division: " << BigInt(-10) / BigInt(3) << endl;      // Should be "-3"
+    cout << "Negative modulus: " << BigInt(-10) % BigInt(3) << endl;       // Should be "-1"
 
     return 0;
 }
